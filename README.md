@@ -5,8 +5,25 @@ package. Replaces LlamaIndex + Ollama with OpenAI and a custom retrieval stack
 incorporating fusion retrieval, hierarchical indices, context enrichment, and
 adaptive query routing.
 
-**Entry point:** `run_retrieval.py` (thin orchestration script). The original
-monolithic `query_topics3.py` is retained for reference.
+## Quickstart
+
+```bash
+# Clone repo
+git clone https://github.com/iandavis1937/LfP_RAG
+
+# Make a dedicated virtual environment
+python -m venv LfP_RAG_env
+source LfP_RAG_env/bin/activate
+
+# Install libraries
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Insert .env file with CO_API_KEY and OPENAI_API_KEY
+
+# Run
+python3 run_retrieval.py
+```
 
 ---
 

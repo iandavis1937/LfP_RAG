@@ -1,0 +1,10 @@
+
+# Secrets
+.env
+
+# Virtual Environment
+/LfP_RAG_env
+
+# Data
+/transcripts/main
+/output/queries

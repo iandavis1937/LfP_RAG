@@ -61,6 +61,7 @@ class IndexBuilder:
         )
         global_id = 0
         for fpath in sorted(Path(CORPUS_DIR).iterdir()):
+            print(fpath.name)
             if not fpath.is_file():
                 continue
             meta = parse_metadata(fpath.name)

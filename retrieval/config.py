@@ -3,15 +3,18 @@ Configuration constants for the qualitative interview retrieval system.
 """
 
 from __future__ import annotations
+from pathlib import Path
+
+_HERE = Path(__file__).parent
 
 # ---------------------------------------------------------------------------
 # Constants / Config
 # ---------------------------------------------------------------------------
 
-CORPUS_DIR    = "txt/transcripts"
+CORPUS_DIR    = str(_HERE / ".." / "transcripts" / "test")  # input directory; each transcript should be one text file
 BUILD_INDEX   = True
-INDEX_DIR     = "index_storage"
-OUTPUT_DIR    = "queries/full_corpus_3_24"
+INDEX_DIR     = str(_HERE / ".." / "intermediate" / "index_storage")
+OUTPUT_DIR    = str(_HERE / ".." / "output" / "queries" / "full_corpus_3_24")
 OUTPUT_SUFFIX = "F5_B5"  # ""; appended to every output filename as __{suffix}; e.g. "w2_bm25" → armed_groups__all__w2_bm25.txt
 EXPORT_CSV    = True  # Set True to also write a .csv alongside each query .txt output
 EMBED_MODEL   = "text-embedding-3-small"
