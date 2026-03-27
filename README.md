@@ -58,20 +58,6 @@ All parameters are defined in `retrieval/config.py` unless noted otherwise.
 
 ---
 
-## Design Decisions
-
-| # | Decision | Choice | Rationale |
-|---|---|---|---|
-| 1 | Question augmentation (HyPE/HyDE) | Dropped | API cost not justified; synonym expansion + fusion retrieval considered sufficient |
-| 2 | Summary index scope | Soft weighting — boost chunks from top-K summaries (opt-in via `USE_SUMMARY_WEIGHTS`) | More robust for cross-document queries; avoids hard cutoff discarding relevant chunks; disabled by default so chunk-level signals alone determine ranking |
-| 3 | Context enrichment assembly | Query-time from chunk store | Flexible; avoids storing redundant data at index time |
-| 4 | LLM reranking | Dropped | Cost and latency not justified; fusion + adaptive routing considered sufficient |
-| 5 | Highlighting signal — BM25 | Regex term matching on expanded query tokens | Free (no API call); multi-word phrases matched longest-first to prevent sub-phrase double-marking |
-| 6 | Highlighting signal — FAISS | Sentence-level cosine similarity to query embedding | Single batched `embed()` call across all result passages; all sentences scoring >0.25 are marked with no cap; if none clear the threshold, only the single top-scoring sentence is marked (fallback) |
-| 7 | Highlight markup | `[**term**]` (BM25), `[[sentence]]` (FAISS above threshold), `[~sentence~]` (FAISS fallback) | Plain-text readable; markdown-compatible bold inside BM25 brackets; `[~..~]` signals that no sentence cleared the 0.25 threshold — only the top scorer is marked; nesting is valid (`[[... [**term**]]]`) |
-
----
-
 ## Module Structure
 
 ```
@@ -562,9 +548,9 @@ relevant sentence renders as `[[text [**term**] text]]`.
 
 ---
 
-## Output
+### Output
 
-### Per-document mode (current default)
+#### Per-document mode (current default)
 `run_retrieval.py` iterates over every document in `builder.doc_chunks` and runs
 `retriever.retrieve()` once per document, injecting `{"source_file": fname}`
 into the base filters from `query_d` (defined in `retrieval/queries.py`). Each
@@ -589,7 +575,7 @@ and summary scores on the first call for a given query string (see Stage 3).
 Subsequent per-document calls reuse the cache, so the full corpus loop in
 `run_retrieval.py` issues only one `embed()` call regardless of document count.
 
-### Single-file mode (previous default)
+#### Single-file mode (previous default)
 To revert to a single output file per query across the full corpus, replace
 the per-document loop with the original call:
 
@@ -598,7 +584,7 @@ results = retriever.retrieve(query_str, filters=filters)
 write_results(query_key, query_str, results)
 ```
 
-### Output fields (both modes)
+#### Output fields (both modes)
 Each result entry in a `.txt` file contains:
 - Source filename
 - Interview type (KII / FGD)
@@ -614,7 +600,7 @@ Each result entry in a `.txt` file contains:
 
 ---
 
-## Dependencies
+### Dependencies
 ```
 openai
 faiss-cpu
@@ -627,12 +613,28 @@ tiktoken
 
 ---
 
-## Paths
+### Paths
 | Purpose | Path | Config location |
 |---|---|---|
-| Entry point | `qual/run_retrieval.py` | — |
+| Entry point | `run_retrieval.py` | — |
+| Input corpus | `transcripts/test/` | `CORPUS_DIR` in `config.py` |
 | Query definitions | `retrieval/queries.py` | — |
 | All constants | `retrieval/config.py` | — |
-| Input corpus | `txt/test/` | `CORPUS_DIR` in `config.py` |
-| Index storage | `index_storage/` | `INDEX_DIR` in `config.py` |
-| Query output | `queries/{query_key}.txt` | `OUTPUT_DIR` in `config.py` |
+| Index storage | `intermediate/index_storage/` | `INDEX_DIR` in `config.py` |
+| Query output | `output/queries/{query_key}.txt` | `OUTPUT_DIR` in `config.py` |
+
+---
+
+## Design Decisions
+
+| # | Decision | Choice | Rationale |
+|---|---|---|---|
+| 1 | Question augmentation (HyPE/HyDE) | Dropped | API cost not justified; synonym expansion + fusion retrieval considered sufficient |
+| 2 | Summary index scope | Soft weighting — boost chunks from top-K summaries (opt-in via `USE_SUMMARY_WEIGHTS`) | More robust for cross-document queries; avoids hard cutoff discarding relevant chunks; disabled by default so chunk-level signals alone determine ranking |
+| 3 | Context enrichment assembly | Query-time from chunk store | Flexible; avoids storing redundant data at index time |
+| 4 | LLM reranking | Dropped | Cost and latency not justified; fusion + adaptive routing considered sufficient |
+| 5 | Highlighting signal — BM25 | Regex term matching on expanded query tokens | Free (no API call); multi-word phrases matched longest-first to prevent sub-phrase double-marking |
+| 6 | Highlighting signal — FAISS | Sentence-level cosine similarity to query embedding | Single batched `embed()` call across all result passages; all sentences scoring >0.25 are marked with no cap; if none clear the threshold, only the single top-scoring sentence is marked (fallback) |
+| 7 | Highlight markup | `[**term**]` (BM25), `[[sentence]]` (FAISS above threshold), `[~sentence~]` (FAISS fallback) | Plain-text readable; markdown-compatible bold inside BM25 brackets; `[~..~]` signals that no sentence cleared the 0.25 threshold — only the top scorer is marked; nesting is valid (`[[... [**term**]]]`) |
+
+---
