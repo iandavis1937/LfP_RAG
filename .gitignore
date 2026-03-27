@@ -5,6 +5,9 @@
 # Virtual Environment
 /LfP_RAG_env
 
+# Intermediate
+/intermediate/index_storage
+
 # Data
 /transcripts/main
 /output/queries
